@@ -5,11 +5,11 @@ const GlobalStyle = createGlobalStyle`
   box-sizing: border-box;
 }
   body {
-    background: black;
-    color: white;
+    background: ${({theme})=>theme.background};
+    color: ${({theme})=>theme.title};
     margin: 0;
     padding: 0;
-    font-family: Open-Sans, Helvetica, Sans-Serif;
+    font-family:  Sans-Serif;
     transition: all 0.25s linear;
   }
 
@@ -36,7 +36,8 @@ const GlobalStyle = createGlobalStyle`
     font-size: 32px;
     display: flex;
     flex-wrap: wrap;
-    align-content: center
+    align-content: center;
+    color: ${({theme})=>theme.typeBoxText};
   }
   .word {
     padding-right: 2px;
@@ -47,7 +48,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   .correct{
-    color: green;
+    color: ${({theme})=>theme.title};
   }
 
   .incorrect{
@@ -78,6 +79,76 @@ const GlobalStyle = createGlobalStyle`
       75% {border-right-color: black;}
       100% {border-right-color: white;}
     }
+  }
+  .skipped{
+    color: grey;
+  }
+  .footer{
+    display: flex;
+    justify-content: space-between;
+    width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .stats-box{
+    display: flex;
+    max-width: 1000px;
+    height: auto;
+    marging-right: auto;
+  }
+  .left-stats{
+    width: 30%;
+    padding: 30px;
+  }
+  .right-stats{
+    width: 70%;
+  }
+  .title{
+    font-size: 20px;
+    color: ${({theme})=>theme.typeBoxText};
+  }
+  .subtitle{
+    font-size: 30px;
+    color: ${({theme})=>theme.title};
+  }
+
+  .upper-menu{
+    display: flex;
+    width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: space-between;
+    font-size: 1.35rem;
+    padding: 0.5rem;
+  }
+  
+  .time-modes{
+    display: flex;
+  }
+
+  .time{
+    margin-right: 5px;
+  }
+  .time:hover{
+    color: ${({theme})=>theme.typeBoxText};
+    cursor: pointer;
+  }
+  .header{
+    display: flex;
+    width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .github-button{
+    width: 400px;
+    text-align: center;
+    background: black;
+    color : white;
+    height: 3rem;
+    border: 2px solid;
+    border-radius: 10px;
   }
 `;
  

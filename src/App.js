@@ -1,21 +1,20 @@
+import React from "react";
 import './App.css';
-import TypingBox from './Components/TypingBox';
-import GlobalStyle from './Styles/global';
-
-var randomWords = require('random-words')
+import { Route, Routes } from "react-router-dom";
+import HomePage from "./Pages/HomePage";
+import UserPages from "./Pages/UserPages";
+import Alert from "./Components/Alert";
 
 function App() {
 
-  const words = randomWords(100)
-  console.log(words)
-
   return (
-    <div className='canvas'>
-    <GlobalStyle/>
-    <h1>Typing test</h1>
-    <TypingBox words={words}/>
-    <h1>Footer</h1>
-    </div>
+    <>
+    <Alert/>
+    <Routes>
+      <Route path="/" element={<HomePage/>}/>
+      <Route path="/user" element={<UserPages/>}/>
+    </Routes>
+    </>
   );
 }
 
