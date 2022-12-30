@@ -15,7 +15,14 @@ const Footer = () => {
     }
   return (
     <div className='footer'>
-    <div className = 'links'>
+      <div className="instruction">
+        <div className="hint">
+          press <kbd>TAB</kbd> to open commands
+        </div>
+      </div>
+
+      <div className="actual-footer">
+      <div className = 'links'>
             
             <GitHubIcon style={{marginLeft: '4px'}}/>
             <LinkedInIcon/>
@@ -32,6 +39,8 @@ const Footer = () => {
                />
                
        </div>
+      </div>
+   
     </div>
   )
 }

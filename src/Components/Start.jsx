@@ -3,8 +3,9 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { useAlert } from '../Context/AlertContext';
 import { auth, db } from '../firebaseConfig';
 import Graph from './Graph'
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
-const Start = ({wpm, accuracy,correctChars,inCorrectChars,missedChars,extraChars,graphData}) => {
+const Start = ({wpm, resetTest, accuracy,correctChars,inCorrectChars,missedChars,extraChars,graphData}) => {
   var timeSet = new Set();
 
   const {setAlert} = useAlert()
@@ -17,12 +18,12 @@ const Start = ({wpm, accuracy,correctChars,inCorrectChars,missedChars,extraChars
   });
 
   const [user] = useAuthState(auth)
-  const pushResultsToDatabase = async()=>{
+  const pushResultsToDatabase = ()=>{
     const resultRef = db.collection('Results')
     const {uid} = auth.currentUser
 
-
-    await resultRef.add({
+     if(!isNaN(accuracy)){
+      resultRef.add({
       wpm: wpm,
       accuracy:accuracy,
       characters : `${correctChars}/${inCorrectChars}/${missedChars}/${extraChars}`,
@@ -37,7 +38,14 @@ const Start = ({wpm, accuracy,correctChars,inCorrectChars,missedChars,extraChars
         })
     })
   }
-
+  else{
+    setAlert({
+      open: true,
+      type: 'error',
+      message:'invalid test'
+    })
+  }
+}
   useEffect(() => {
     if(user){
       //saving  bez user is logged in
@@ -64,6 +72,9 @@ const Start = ({wpm, accuracy,correctChars,inCorrectChars,missedChars,extraChars
           <div className='subtitle'>{accuracy}%</div>
           <div className='title'>characters</div>
           <div className='subtitle'>{correctChars}/{inCorrectChars}/{missedChars}/{extraChars}</div>
+          <div className="reset-subtitle" onClick={resetTest}>
+            <RestartAltIcon/>
+          </div>
        </div>
        <div className='right-stats'>
         {/* graph camp will go here */}

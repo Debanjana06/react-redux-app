@@ -1,13 +1,16 @@
 import { Box, Button, TextField } from '@mui/material'
 import React, { useState } from 'react'
 import { useAlert } from '../Context/AlertContext'
+import { useTheme } from '../Context/ThemeContext'
 import { auth } from '../firebaseConfig'
+import errorMapping from '../Utils/errorMapping'
 
 const LoginForm = ({handleClose}) => {
 
 const [email, setEmail] = useState('')
 const [password, setPassword] = useState('')
 const {setAlert} = useAlert()
+const {theme} = useTheme()
 const handleSubmit = () =>{
     if(!email || !password){
       setAlert({
@@ -30,7 +33,7 @@ const handleSubmit = () =>{
       setAlert({
         open:true,
         type:'error',
-        message: 'failed to looged in'
+        message: errorMapping[err.code] || "some error occured"
       })
     })
 }
@@ -48,12 +51,40 @@ const handleSubmit = () =>{
        type='email'
        variant='outlined'
        label='Enter Email'
+       InputLabelProps={
+        {
+          style:{
+            color: theme.title
+          }
+        }
+       }
+       InputProps={
+        {
+          style:{
+            color:theme.title
+          }
+        }
+       }
        onChange={(e)=>setEmail(e.target.value)}
        />
       <TextField
       type='password'
       variant='outlined'
-      label='Enter Password' 
+      label='Enter Password'
+      InputLabelProps={
+        {
+          style:{
+            color: theme.title
+          }
+        }
+       } 
+       InputProps={
+        {
+          style:{
+            color:theme.title
+          }
+        }
+       }
       onChange={(e)=>setPassword(e.target.value)}
        />
       <Button

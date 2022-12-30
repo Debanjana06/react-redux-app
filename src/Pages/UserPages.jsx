@@ -2,11 +2,17 @@ import { LinearProgress } from '@material-ui/core'
 import React, { useEffect, useState } from 'react'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import Graph from '../Components/Graph'
+import Header from '../Components/Header'
 import ResultTable from '../Components/ResultTable'
+import UserInfo from '../Components/UserInfo'
+import { useTheme } from '../Context/ThemeContext'
 import { auth,db } from '../firebaseConfig'
 
+
 const UserPages = () => {
+  const {theme} = useTheme()
   const [data, setData] = useState([])
+  const [dataLoading,SetDataLoading] = useState(true)
   const [user,loading] = useAuthState(auth)
   const [graphData , setGraphData] = useState([])
 
@@ -24,24 +30,37 @@ const UserPages = () => {
       console.log(tempData);
       setData(tempData)
       setGraphData(tempGraphData.reverse())
+      SetDataLoading(false)
     })
    
   }
   useEffect(() => {
-    if(!loading){
+    if(!loading && user){
       fetchUserData()
     }
     
   },[loading])
 
-  if(loading){
-    return <LinearProgress/>
+  if(!loading && !user){
+    return (
+      <div className="center-of-screen">
+        <span>Login to view user page!</span>
+      </div>
+    )
+  }
+
+  if(loading || dataLoading){
+    return <LinearProgress />
   }
   return (
-    <>
-      <ResultTable data={data} />
-      <Graph graphData={graphData} typr='date' />
-    </>
+    <div className='canvas'>
+      <Header/>
+      <UserInfo totalTestTaken={data.length}/>
+       <div className="graph">
+       <Graph graphData={graphData} typr='date' />
+       </div>
+     <ResultTable data={data} />
+    </div>
 
   )
 }

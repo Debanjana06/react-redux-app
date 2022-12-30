@@ -32,7 +32,7 @@ const Graph = ({graphData,type}) => {
        <Line 
             data={
                 {
-                    labels: graphData.map(i=>(type === 'date') ?(i[0].toDate().toLocaleString()) :(i[0]+1)),
+                    labels: graphData.map(i=>(type === 'date') ?(i[0].toDate().toLocaleString().split(',')) :(i[0]+1)),
                     datasets: [
                         {
                             data: graphData.map(i=>i[1]),

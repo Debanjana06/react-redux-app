@@ -1,16 +1,42 @@
-import React, { createRef, useEffect, useRef, useState } from 'react'
+import { Dialog, DialogTitle } from '@material-ui/core'
+import React, { createRef, useEffect, useMemo, useRef, useState } from 'react'
 import { UseTestMode } from '../Context/TestContext'
 import Start from './Start'
 import UpperMenu from './UpperMenu'
 
-const TypingBox = ({words}) => {
+var randomWords = require('random-words')
+const TypingBox = () => {
 
-  const {testSecond} = UseTestMode()
+  const {testSecond,testWords,testMode} = UseTestMode()
+
+  const [wordsArray , setWordsArray] = useState(()=>{
+    if(testMode==='word'){
+      return randomWords(testWords)
+    }
+    return randomWords(300)
+  }) 
+
+  const words = useMemo(()=>{
+    return wordsArray
+  },[wordsArray])
+  
 
  const [currCharIndex, setCurrCharIndex] = useState(0) 
  const [currWordIndex, setCurrWordIndex] = useState(0) 
- const [countDown , setCountDown]= useState(5)
- const [testTime, setTestTime] = useState(15)
+ const [countDown , setCountDown]= useState(()=>{
+  if(testMode==='word'){
+    return 180
+  }
+  return testSecond
+ })
+
+ const [testTime, setTestTime] = useState(()=>{
+  if(testMode==='word'){
+    return 180
+  }
+  return testSecond
+ })
+
  const [correctChars, setCorrectChars] = useState(0)
  const [correctWords, setCorrectWords] = useState(0)
  const [inCorrectChars, setInCorrectChars] = useState(0)
@@ -19,13 +45,67 @@ const TypingBox = ({words}) => {
  const [graphData, setGraphData] = useState([])
  const [testStart, setTestStart] = useState(false)
  const [testEnd, setTestEnd] = useState(false)
+ const [intervalId, setIntervalId] = useState()
+ const [open , setOpen]=useState(false)
 
 const inputRef = useRef(null)
-const wordSpanRef = Array(words.length).fill(0).map(i => createRef(null))
+const wordSpanRef = useMemo(()=>{
+  return Array(words.length).fill(0).map(i => createRef(null))
+},[words])
 
+const resetTest = ()=>{
+  setCurrCharIndex(0)
+  setCurrWordIndex(0)
+  setTestStart(false)
+  setTestEnd(false)
+  clearInterval(intervalId)
+  if(testMode==='word'){
+    setWordsArray(randomWords(testWords))
+    setCountDown(180)
+    setTestTime(180)
+  } else{
+    setWordsArray(randomWords(300))
+    setCountDown(testSecond)
+    setTestTime(testSecond)
+  }
+  
+  setGraphData([])
+  setCorrectChars(0)
+  setCorrectWords(0)
+  setExtraChars(0)
+  setInCorrectChars(0)
+  setMissedChars(0)
+  resetWordSpanRefClassName()
+  focusInput()
+}
+
+const redoTest = ()=>{
+  setCurrCharIndex(0)
+  setCurrWordIndex(0)
+  setTestStart(false)
+  setTestEnd(false)
+  clearInterval(intervalId)
+  if(testMode==='word'){
+    setCountDown(180)
+    setTestTime(180)
+  } else{
+    setCountDown(testSecond)
+    setTestTime(testSecond)
+  }
+  
+  setGraphData([])
+  setCorrectChars(0)
+  setCorrectWords(0)
+  setExtraChars(0)
+  setInCorrectChars(0)
+  setMissedChars(0)
+  resetWordSpanRefClassName()
+  focusInput()
+}
 const startTimer = () =>{
   
   const intervalId = setInterval(timer,1000);
+  setIntervalId(intervalId)
 //timer function
   function timer (){
     console.log('timer function working')
@@ -56,8 +136,24 @@ const startTimer = () =>{
 
 
 const handleKeyDown = (e)=>{
+
+   if(e.keyCode === 9){
+    if(testStart){
+      clearInterval(intervalId)
+    }
+    e.preventDefault()
+    setOpen(true)
+    return
+   }
+
+
+
 let allChildSpans =  wordSpanRef[currWordIndex].current.childNodes;
 
+if(e.keyCode!==8 && e.key.length>1){
+  e.preventDefault()
+  return
+}
 if(!testStart){
   startTimer();
   setTestStart(true)
@@ -68,6 +164,18 @@ if(!testStart){
 
 //logic for space presee => increase my currWordIndex by 1
 if(e.keyCode === 32){
+
+  if(currWordIndex===wordsArray.length-1){
+    clearInterval(intervalId)
+    setCurrWordIndex(currWordIndex+1)
+    setTestEnd(true)
+    return
+  }
+
+
+
+
+
   const correctChars = wordSpanRef[currWordIndex].current.querySelectorAll('.correct')
 
   if(correctChars.length === allChildSpans.length){
@@ -85,6 +193,11 @@ for(let i = currCharIndex; i<allChildSpans.length;i++){
 }
 allChildSpans[currCharIndex].className = allChildSpans[currCharIndex].className.replace('current',"")
 }
+
+//scrolling line condition
+if(wordSpanRef[currWordIndex+1].current.offsetLeft < wordSpanRef[currWordIndex].current.offsetLeft){
+  wordSpanRef[currWordIndex].current.scrollIntoView() 
+} 
 
   wordSpanRef[currWordIndex+1].current.childNodes[0].className = 'char current';
   setCurrWordIndex(currWordIndex+1)
@@ -130,18 +243,20 @@ if(currCharIndex === allChildSpans.length){
  wordSpanRef[currWordIndex].current.append(newSpan);
 
  setCurrCharIndex(currCharIndex+1);
-
-
-
-
   return;
 }
-
 
 
 if(e.key === allChildSpans[currCharIndex].innerText){
   allChildSpans[currCharIndex].className = 'char correct'
   setCorrectChars(correctChars+1)
+  
+  if(currWordIndex===wordsArray.length-1 && currCharIndex===allChildSpans.length-1){
+   clearInterval(intervalId)
+   setCurrWordIndex(currWordIndex+1)
+   setTestEnd(true)
+   return
+  }
 }
 else{
   allChildSpans[currCharIndex].className = 'char incorrect'
@@ -157,8 +272,39 @@ allChildSpans[currCharIndex+1].className = 'char current'
 setCurrCharIndex(currCharIndex+1)
 }
 
+const handleDialogBoxEvent = (e) =>{
+  if(e.keyCode === 32){
+    //logic for redo game
+   e.preventDefault()
+   redoTest()
+   setOpen(false)
+   return
+
+    return
+  }
+  if(e.keyCode===9 || e.keyCode===13){
+   //  logic for restart
+   e.preventDefault()
+   resetTest()
+   setOpen(false)
+   return
+  }
+  e.preventDefault()
+  setOpen(false)
+  startTimer()
+}
+
+const resetWordSpanRefClassName = ()=>{
+  wordSpanRef.map(i=>{
+     Array.from(i.current.childNodes).map(j=>{
+      j.className = 'char'
+     })
+  })
+  wordSpanRef[0].current.childNodes[0].className = 'char current'
+}
+
 const calculateWPM = () =>{
-  return Math.round((correctChars/5)/(testTime/60))
+  return Math.round((correctChars/5)/((graphData[graphData.length-1][0]+1)/60))
 }
 
 const calculateAccuracy = () =>{
@@ -178,13 +324,12 @@ useEffect(()=>{
 },[]);
 
 useEffect(() => {
-   setCountDown(testSecond)
-   setTestTime(testSecond)
-}, [testSecond])
+   resetTest()
+}, [testSecond,testWords,testMode])
 
   return (
     <div>
-      
+        <UpperMenu countDown={countDown} currWordIndex={currWordIndex}/>
         {(testEnd) ? 
         (<Start 
             wpm={calculateWPM()} 
@@ -194,10 +339,10 @@ useEffect(() => {
             missedChars={missedChars} 
             extraChars={extraChars}
             graphData={graphData}
+            resetTest={resetTest}
             />) : 
         (
          <div className='type-box' onClick={focusInput}>
-          <UpperMenu countDown={countDown}/>
             <div className='words'>
               {words.map((word,index)=>(
                   <span className='word' ref={wordSpanRef[index]} key={index}>
@@ -218,6 +363,25 @@ useEffect(() => {
          ref={inputRef}
          onKeyDown={(e)=>handleKeyDown(e)}
        />
+       <Dialog
+        open={open}
+        style={{
+          backdropFilter: 'blur(2px)'
+        }}
+        PaperProps={{
+          style: {
+            backgroundColor:'transparent',
+            boxShadow:'none'
+          }
+        }}
+        onKeyDown={handleDialogBoxEvent}
+        >
+         <DialogTitle>
+            <div className="instruction">press SPACE to redo</div>
+            <div className="instruction">press TAB/ENTER to restart</div>
+            <div className="instruction">press any other key to exit</div>
+         </DialogTitle>
+       </Dialog>
     </div>
   )
 }

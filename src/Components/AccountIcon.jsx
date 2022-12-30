@@ -6,11 +6,12 @@ import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import GoogleButton from 'react-google-button';
 import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup} from 'firebase/auth'
-import { auth } from '../firebaseConfig';
+import { auth, db } from '../firebaseConfig';
 import {useAuthState} from 'react-firebase-hooks/auth'
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 import { useAlert } from '../Context/AlertContext';
+import { useTheme } from '../Context/ThemeContext';
 
 const useStyle = makeStyles(()=>({
     modal: {
@@ -24,6 +25,7 @@ const useStyle = makeStyles(()=>({
         textAlign:'center'
     }
 }))
+
 
 
 
@@ -73,7 +75,11 @@ const AccountIcon = () => {
 
     const googleProvider = new GoogleAuthProvider()
     const signInWithGoogle = () =>{
-      signInWithPopup(auth,googleProvider).then((Response)=>{
+      signInWithPopup(auth,googleProvider).then(async(Response)=>{
+        const username = Response.user.email
+          const ref = await db.collection('usernames').doc(username).set({
+            uid : Response.user.uid
+          })
         setAlert({
           open:true,
           type:'success',
@@ -92,8 +98,11 @@ const AccountIcon = () => {
 
     const githubProvider = new GithubAuthProvider()
     const signInWithGithub=()=>{
-        signInWithPopup(auth, githubProvider).then((response)=>{
-          console.log(response);
+        signInWithPopup(auth, githubProvider).then(async(response)=>{
+          const username = response.user.email.split('@')[0]
+          const ref = await db.collection('usernames').doc(username).set({
+            uid : response.user.uid
+          })
           setAlert({
             open:true,
             type:'success',
@@ -109,6 +118,7 @@ const AccountIcon = () => {
         })
     }
 
+    const {theme} = useTheme()
      const classes = useStyle();
 
   return (
@@ -128,8 +138,8 @@ const AccountIcon = () => {
                    value={value}
                    onChange={handleValueChange}
                 >
-                    <Tab label='login'></Tab>
-                    <Tab label='signup'></Tab>
+                    <Tab label='login' style={{color: theme.title}}></Tab>
+                    <Tab label='signup' style={{color: theme.title}}></Tab>
                 </Tabs>
             </AppBar>
 
